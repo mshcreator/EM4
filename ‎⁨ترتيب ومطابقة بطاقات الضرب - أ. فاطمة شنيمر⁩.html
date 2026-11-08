@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مطابقة بطاقات جدول الضرب - أ. فاطمة شنيمر</title>
+    <!-- Tailwind CSS & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap');
+        
+        * {
+            font-family: 'Tajawal', system-ui, -apple-system, sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #fefce8;
+            background-image: radial-gradient(#fef08a 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Board Styling */
+        .whiteboard {
+            background-color: #ffffff;
+            border: 12px solid #ca8a04;
+            border-radius: 28px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.05), 0 10px 25px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        /* Card Styles */
+        .math-card {
+            background: linear-gradient(135deg, #ffffff, #fffde7);
+            border: 3px solid #facc15;
+            border-radius: 16px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Flower / Sunflower Decorative Corner Icons */
+        .math-card::after {
+            content: '🌻';
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .math-card::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            right: 3px;
+            bottom: 3px;
+            border: 2px dashed #eab308;
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        .math-card:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 8px 16px rgba(234, 179, 8, 0.3);
+        }
+
+        .card-selected {
+            transform: scale(1.08) translateY(-6px) !important;
+            border-color: #0284c7 !important;
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd) !important;
+            box-shadow: 0 0 0 4px #38bdf8, 0 10px 20px rgba(2, 132, 199, 0.3) !important;
+            animation: bounceCard 0.6s infinite alternate ease-in-out;
+        }
+
+        @keyframes bounceCard {
+            0% { transform: scale(1.08) translateY(-4px); }
+            100% { transform: scale(1.08) translateY(-8px); }
+        }
+
+        /* Connected/Attached Pair Styling */
+        .matched-pair-container {
+            animation: attachSnap 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes attachSnap {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .attached-question-card {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0) !important;
+            border: 3px solid #22c55e !important;
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
+            border-left: 1px dashed #16a34a !important;
+            color: #14532d !important;
+            font-weight: 900 !important;
+        }
+
+        .attached-answer-card {
+            background: linear-gradient(135deg, #fef08a, #fde047) !important;
+            border: 3px solid #ca8a04 !important;
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+            border-right: 1px dashed #ca8a04 !important;
+            color: #713f12 !important;
+            font-weight: 900 !important;
+        }
+
+        .math-card::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 2px dashed #facc15;
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        .math-card:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 8px 16px rgba(234, 179, 8, 0.25);
+        }
+
+        .card-selected {
+            transform: scale(1.08) translateY(-6px) !important;
+            border-color: #0284c7 !important;
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd) !important;
+            box-shadow: 0 0 0 4px #38bdf8, 0 10px 20px rgba(2, 132, 199, 0.3) !important;
+            animation: bounceCard 0.6s infinite alternate ease-in-out;
+        }
+
+        @keyframes bounceCard {
+            0% { transform: scale(1.08) translateY(-4px); }
+            100% { transform: scale(1.08) translateY(-8px); }
+        }
+
+        .card-matched {
+            background: linear-gradient(135deg, #dcfce7, #86efac) !important;
+            border-color: #22c55e !important;
+            color: #15803d !important;
+            opacity: 0.85;
+            pointer-events: none;
+            transform: scale(0.96);
+            box-shadow: none !important;
+        }
+
+        .card-matched::before {
+            border-color: #4ade80 !important;
+        }
+
+        /* Print Specifics */
+        @media print {
+            body * { visibility: hidden; }
+            #printableCertificate, #printableCertificate * { visibility: visible; }
+            #printableCertificate {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100% !important;
+                margin: 0 !important;
+                border: 8px double #d97706 !important;
+                box-shadow: none !important;
+                background: white !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-amber-200 sticky top-0 z-40 px-4 py-3 shadow-sm">
+        <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            
+            <!-- Title & Teacher Signature -->
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center text-2xl shadow-md">
+                    🃏
+                </div>
+                <div>
+                    <h1 class="text-xl font-black text-gray-800 leading-tight">مطابقة بطاقات جدول الضرب</h1>
+                    <p class="text-xs font-bold text-amber-700 flex items-center gap-1 mt-0.5">
+                        <span>إعداد المعلمة:</span> 
+                        <span class="text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 font-black">أ. فاطمة شنيمر</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Level Selector & Score -->
+            <div class="flex items-center gap-3 bg-amber-50/80 p-1.5 rounded-2xl border border-amber-200">
+                <select id="tableSelect" onchange="changeTable()" class="bg-white border-2 border-amber-400 text-amber-900 font-black rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-amber-600 cursor-pointer shadow-sm">
+                    <option value="6" selected>جدول 6 (كامل 0-10)</option>
+                    <option value="0">جدول 0</option>
+                    <option value="1">جدول 1</option>
+                    <option value="2">جدول 2</option>
+                    <option value="3">جدول 3</option>
+                    <option value="4">جدول 4</option>
+                    <option value="5">جدول 5</option>
+                    <option value="7">جدول 7</option>
+                    <option value="8">جدول 8</option>
+                    <option value="9">جدول 9</option>
+                    <option value="10">جدول 10</option>
+                </select>
+
+                <div class="flex items-center gap-2 px-3 py-1 bg-white rounded-xl border border-amber-200 text-xs font-black">
+                    <span class="text-amber-500 text-base">⭐</span>
+                    <span class="text-gray-600">النقاط:</span>
+                    <span id="scoreText" class="text-amber-700 text-sm font-black">٠</span>
+                </div>
+
+                <button onclick="toggleSound()" class="w-9 h-9 bg-white rounded-xl border border-amber-200 text-amber-700 flex items-center justify-center text-sm shadow-sm hover:bg-amber-100">
+                    <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-5xl mx-auto px-4 mt-4 flex-1 w-full flex flex-col gap-5">
+        
+        <!-- Table Title Banner -->
+        <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 text-white rounded-2xl p-3 sm:p-4 text-center shadow-lg flex flex-wrap items-center justify-between gap-2 px-6">
+            <div class="flex items-center gap-2 font-black text-base sm:text-lg" id="tableNameDisplay">
+                سبورة بطاقات جدول 6
+            </div>
+            <div class="text-xs bg-white/20 px-3 py-1 rounded-full font-bold backdrop-blur-sm">
+                المكتمل: <span id="progressText" class="font-black text-amber-100">٠ / ١١</span>
+            </div>
+        </div>
+
+        <!-- Instructions Banner -->
+        <div class="bg-amber-100/70 border-2 border-amber-300 text-amber-900 rounded-2xl p-3 text-center text-xs sm:text-sm font-bold shadow-sm flex items-center justify-center gap-2">
+            <span>👇</span>
+            <span>طريقة اللعب: انقر على <strong>بطاقة المسألة</strong>، ثم انقر على <strong>بطاقة الناتج المطابقة</strong> لربطهما معاً!</span>
+        </div>
+
+        <!-- Interactive Whiteboard Area -->
+        <div class="whiteboard p-4 sm:p-8 min-h-[440px] flex flex-col gap-6">
+            
+            <!-- Section 1: Connected Pairs (Where Cards Snap Side-by-Side) -->
+            <div id="matchedSection" class="hidden">
+                <h2 class="text-xs sm:text-sm font-black text-emerald-800 mb-3 flex items-center gap-2 bg-emerald-100 p-2 rounded-xl border border-emerald-300 w-fit">
+                    <span>✨ الجمل المكتملة والمثبتة بجانب بعضها:</span>
+                </h2>
+                <div id="matchedPairsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <!-- Snapped Pairs inserted here dynamically -->
+                </div>
+                <hr class="border-amber-200 border-dashed my-4">
+            </div>
+
+            <!-- Section 2: Unmatched Questions -->
+            <div>
+                <h2 class="text-xs sm:text-sm font-black text-amber-900 mb-3 flex items-center gap-2">
+                    <span>📌 بطاقات جمل الضرب (انقر لاختيار المسألة):</span>
+                </h2>
+                <div id="questionsContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+                    <!-- Question Cards generated via JS -->
+                </div>
+            </div>
+
+            <hr class="border-amber-200 border-dashed">
+
+            <!-- Section 3: Unmatched Answers -->
+            <div>
+                <h2 class="text-xs sm:text-sm font-black text-amber-900 mb-3 flex items-center gap-2">
+                    <span>🎯 بطاقات النواتج المبعثرة (انقر لإلصاق الناتج بمسألته):</span>
+                </h2>
+                <div id="answersContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+                    <!-- Answer Cards generated via JS -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer Controls -->
+    <footer class="bg-white border-t border-amber-200 py-3 px-4 text-center mt-auto">
+        <div class="max-w-5xl mx-auto flex justify-between items-center text-xs text-gray-500 font-bold">
+            <button onclick="resetGame()" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-xl border border-amber-300 font-black transition flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate-right"></i> إعادة بعثرة البطاقات
+            </button>
+            <div>تصميم مخصص لمادة الرياضيات | <strong>أ. فاطمة شنيمر</strong></div>
+        </div>
+    </footer>
+
+    <!-- Win Modal & Student Form -->
+    <div id="winModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border-4 border-amber-300">
+            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 border-4 border-amber-300 animate-bounce">
+                🏆
+            </div>
+            <h2 class="text-2xl font-black text-gray-800 mb-1">إنجاز رائع وبطولي! 🌟</h2>
+            <p class="text-gray-600 font-bold text-xs sm:text-sm mb-4" id="winModalText">لقد طابقت جميع البطاقات بنجاح!</p>
+
+            <!-- Student Form -->
+            <div class="mb-5 text-right bg-amber-50 p-4 rounded-2xl border border-amber-200 space-y-3">
+                <div>
+                    <label class="block text-xs font-black text-gray-700 mb-1.5">اختر (بطل 👦 / بطلة 👧):</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center justify-center gap-2 bg-white border-2 border-amber-200 p-2 rounded-xl cursor-pointer hover:border-amber-500 font-bold text-xs">
+                            <input type="radio" name="gender" value="boy" checked onchange="updateGenderLabel()"> بطل 👦
+                        </label>
+                        <label class="flex items-center justify-center gap-2 bg-white border-2 border-amber-200 p-2 rounded-xl cursor-pointer hover:border-amber-500 font-bold text-xs">
+                            <input type="radio" name="gender" value="girl" onchange="updateGenderLabel()"> بطلة 👧
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label id="nameInputLabel" class="block text-xs font-black text-gray-700 mb-1">اسم الطالب:</label>
+                    <input type="text" id="studentNameInput" placeholder="أدخل اسم البطل / البطلة هنا..." class="w-full border-2 border-amber-300 rounded-xl px-3 py-2 text-sm font-bold text-gray-800 focus:outline-none focus:border-amber-500 bg-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-gray-700 mb-1">إشراف المعلمة:</label>
+                    <input type="text" id="teacherNameInput" value="أ. فاطمة شنيمر" class="w-full border-2 border-amber-200 rounded-xl px-3 py-1.5 text-sm font-black text-amber-800 bg-amber-100/60 focus:outline-none" readonly>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <button onclick="generateCertificate()" class="w-full py-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-black rounded-xl shadow-md text-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-award text-lg"></i> إصدار شهادة الإتقان 📜
+                </button>
+                <button onclick="resetGame(); closeWinModal();" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition">
+                    إعادة اللعب 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Printable Certificate Modal -->
+    <div id="certModal" class="fixed inset-0 bg-black/70 backdrop-blur-md hidden flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <div class="max-w-2xl w-full flex flex-col items-center gap-4">
+            
+            <!-- CERTIFICATE CARD -->
+            <div id="printableCertificate" class="w-full bg-amber-50 border-8 border-double border-amber-400 rounded-3xl p-6 sm:p-10 shadow-2xl text-center relative overflow-hidden">
+                
+                <!-- Certificate Header -->
+                <div class="flex justify-between items-center border-b-2 border-amber-300/60 pb-4 mb-6">
+                    <div class="text-right">
+                        <p class="text-xs font-bold text-amber-900">المملكة العربية السعودية</p>
+                        <p class="text-xs font-bold text-amber-900">مادة الرياضيات</p>
+                    </div>
+                    <div class="text-4xl text-amber-500">
+                        🏆
+                    </div>
+                    <div class="text-left">
+                        <p class="text-xs font-bold text-amber-900">إعداد المعلمة:</p>
+                        <p class="text-sm font-black text-amber-800" id="certTeacherTop">أ. فاطمة شنيمر</p>
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <h2 class="text-2xl sm:text-4xl font-black text-amber-900 mb-1">🏅 شهادة إتقان وتفوق 🏅</h2>
+                <p class="text-xs sm:text-sm text-gray-700 font-bold mb-6">في مطابقة بطاقات جدول الضرب</p>
+
+                <!-- Content -->
+                <p class="text-base sm:text-lg text-gray-800 leading-relaxed mb-2">
+                    تشهد المعلمة القديرة <span class="font-black text-amber-800" id="certTeacherMain">أ. فاطمة شنيمر</span> بأن <span id="certTitleGender" class="font-bold text-gray-800">الطالب المتميز:</span>
+                </p>
+
+                <div class="inline-block border-b-4 border-amber-500 px-8 py-2 my-2 bg-amber-100/50 rounded-lg">
+                    <span id="certStudentName" class="text-2xl sm:text-3xl font-black text-amber-900">...</span>
+                </div>
+
+                <p class="text-sm sm:text-base text-gray-800 leading-relaxed mt-4 font-bold">
+                    <span id="certVerbGender">قد أتقن</span> جميع عمليات ومطابقات <span id="certTableName" class="text-amber-700 font-black">جدول 6</span> 
+                    بنسبة 100% وبسرعة بديهة ممتازة.
+                </p>
+
+                <!-- Signatures -->
+                <div class="flex justify-between items-end mt-8 pt-4 border-t border-amber-300/50">
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500 font-bold">تاريخ الإتقان</p>
+                        <p id="certDate" class="text-xs sm:text-sm font-bold text-amber-900"></p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500 font-bold mb-1">معلمة المادة</p>
+                        <p class="text-base font-black text-amber-800" id="certTeacherSign">أ. فاطمة شنيمر 🌸</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 w-full max-w-sm">
+                <button onclick="window.print()" class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md text-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-print"></i> طباعة الشهادة
+                </button>
+                <button onclick="closeCertModal()" class="py-3 px-5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl text-sm transition">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Logic -->
+    <script>
+        let soundEnabled = true;
+        let score = 0;
+        let activePairs = [];
+        let matchedCount = 0;
+        let selectedCard = null; // Stores currently selected card HTMLElement
+
+        let synth;
+        try {
+            if (typeof Tone !== 'undefined') {
+                synth = new Tone.Synth().toDestination();
+            }
+        } catch (e) {}
+
+        function playCorrectSound() {
+            if (!soundEnabled || !synth) return;
+            try {
+                Tone.start();
+                synth.triggerAttackRelease("G4", "8n");
+            } catch (e) {}
+        }
+
+        function playWrongSound() {
+            if (!soundEnabled || !synth) return;
+            try {
+                Tone.start();
+                synth.triggerAttackRelease("D3", "8n");
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            if(icon) {
+                icon.className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark text-red-400';
+            }
+        }
+
+        function toArabicDigits(num) {
+            const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+            return num.toString().replace(/\d/g, d => arabicDigits[d]);
+        }
+
+        function initLevel() {
+            const tableSelect = document.getElementById('tableSelect');
+            const tableValue = tableSelect ? parseInt(tableSelect.value) : 6;
+            
+            document.getElementById('tableNameDisplay').innerText = `سبورة بطاقات جدول ${toArabicDigits(tableValue)} (كامل 0-10)`;
+
+            activePairs = [];
+            matchedCount = 0;
+            selectedCard = null;
+
+            document.getElementById('progressText').innerText = `٠ / ١١`;
+
+            for (let i = 0; i <= 10; i++) {
+                activePairs.push({
+                    id: `card-${tableValue}-${i}`,
+                    num1: tableValue,
+                    num2: i,
+                    product: tableValue * i
+                });
+            }
+
+            renderBoardCards();
+        }
+
+        function renderBoardCards() {
+            const questionsContainer = document.getElementById('questionsContainer');
+            const answersContainer = document.getElementById('answersContainer');
+            const matchedSection = document.getElementById('matchedSection');
+            const matchedPairsGrid = document.getElementById('matchedPairsGrid');
+
+            if (!questionsContainer || !answersContainer) return;
+
+            questionsContainer.innerHTML = '';
+            answersContainer.innerHTML = '';
+            matchedPairsGrid.innerHTML = '';
+            matchedSection.classList.add('hidden');
+
+            // Shuffle questions and answers separately
+            const shuffledQuestions = [...activePairs].sort(() => Math.random() - 0.5);
+            const shuffledAnswers = [...activePairs].sort(() => Math.random() - 0.5);
+
+            // Render Question Cards
+            shuffledQuestions.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `math-card py-4 px-2 text-center text-gray-800 font-black text-lg sm:text-xl`;
+                card.dataset.id = item.id;
+                card.dataset.type = 'question';
+                card.dataset.product = item.product;
+                card.dataset.expr = `${toArabicDigits(item.num1)} × ${toArabicDigits(item.num2)} =`;
+                card.innerHTML = card.dataset.expr;
+
+                card.onclick = () => handleCardClick(card, item);
+                questionsContainer.appendChild(card);
+            });
+
+            // Render Answer Cards
+            shuffledAnswers.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `math-card py-4 px-2 text-center text-amber-900 font-black text-xl sm:text-2xl`;
+                card.dataset.id = item.id;
+                card.dataset.type = 'answer';
+                card.dataset.product = item.product;
+                card.dataset.val = `${toArabicDigits(item.product)}`;
+                card.innerHTML = card.dataset.val;
+
+                card.onclick = () => handleCardClick(card, item);
+                answersContainer.appendChild(card);
+            });
+        }
+
+        function handleCardClick(card, itemData) {
+            if (card.classList.contains('card-matched')) return;
+
+            // If same card clicked, deselect
+            if (selectedCard === card) {
+                selectedCard.classList.remove('card-selected');
+                selectedCard = null;
+                return;
+            }
+
+            // If no card selected yet
+            if (!selectedCard) {
+                selectedCard = card;
+                selectedCard.classList.add('card-selected');
+                return;
+            }
+
+            // If selected same type (two questions or two answers), switch selection
+            if (selectedCard.dataset.type === card.dataset.type) {
+                selectedCard.classList.remove('card-selected');
+                selectedCard = card;
+                selectedCard.classList.add('card-selected');
+                return;
+            }
+
+            // Match Attempt
+            const isMatch = selectedCard.dataset.product === card.dataset.product;
+
+            if (isMatch) {
+                playCorrectSound();
+                score += 10;
+                matchedCount++;
+                document.getElementById('scoreText').innerText = toArabicDigits(score);
+                document.getElementById('progressText').innerText = `${toArabicDigits(matchedCount)} / ١١`;
+
+                // Identify Question & Answer Elements
+                const qCard = selectedCard.dataset.type === 'question' ? selectedCard : card;
+                const aCard = selectedCard.dataset.type === 'answer' ? selectedCard : card;
+
+                // Remove selection highlight
+                selectedCard.classList.remove('card-selected');
+                selectedCard = null;
+
+                // Create Side-by-Side Snapped Cards in Top Section
+                const matchedSection = document.getElementById('matchedSection');
+                const matchedPairsGrid = document.getElementById('matchedPairsGrid');
+                matchedSection.classList.remove('hidden');
+
+                const pairContainer = document.createElement('div');
+                pairContainer.className = 'matched-pair-container flex items-center justify-center shadow-md rounded-2xl overflow-hidden border-2 border-emerald-400 bg-emerald-50/50 p-1';
+                
+                pairContainer.innerHTML = `
+                    <div class="math-card attached-question-card py-3 px-4 text-center font-black text-base flex-1">
+                        ${qCard.dataset.expr}
+                    </div>
+                    <div class="math-card attached-answer-card py-3 px-4 text-center font-black text-lg flex-1">
+                        ${aCard.dataset.val}
+                    </div>
+                `;
+
+                matchedPairsGrid.appendChild(pairContainer);
+
+                // Remove individual cards from original lists
+                qCard.style.display = 'none';
+                aCard.style.display = 'none';
+
+                if (matchedCount === activePairs.length) {
+                    setTimeout(showWinModal, 500);
+                }
+            } else {
+                playWrongSound();
+                card.classList.add('bg-rose-200', 'border-rose-500');
+                selectedCard.classList.add('bg-rose-200', 'border-rose-500');
+
+                const tempSelected = selectedCard;
+                setTimeout(() => {
+                    card.classList.remove('bg-rose-200', 'border-rose-500');
+                    tempSelected.classList.remove('bg-rose-200', 'border-rose-500', 'card-selected');
+                }, 500);
+
+                selectedCard = null;
+            }
+        }
+
+        function updateGenderLabel() {
+            const isGirl = document.querySelector('input[name="gender"]:checked').value === 'girl';
+            const label = document.getElementById('nameInputLabel');
+            if (label) {
+                label.innerText = isGirl ? "اسم الطالبة:" : "اسم الطالب:";
+            }
+        }
+
+        function showWinModal() {
+            const tableValue = document.getElementById('tableSelect').value;
+            document.getElementById('winModalText').innerText = `لقد أتممت مطابقة جميع بطاقات جدول ${toArabicDigits(tableValue)} بنجاح! 🎉`;
+            document.getElementById('winModal').classList.remove('hidden');
+        }
+
+        function closeWinModal() {
+            document.getElementById('winModal').classList.add('hidden');
+        }
+
+        function generateCertificate() {
+            const gender = document.querySelector('input[name="gender"]:checked').value;
+            const isGirl = gender === 'girl';
+            
+            const nameInput = document.getElementById('studentNameInput').value.trim();
+            const teacherName = document.getElementById('teacherNameInput').value.trim() || 'أ. فاطمة شنيمر';
+            const tableValue = document.getElementById('tableSelect').value;
+            
+            const defaultName = isGirl ? 'الطالبة المتميزة' : 'الطالب المتميز';
+            const studentName = nameInput || defaultName;
+
+            document.getElementById('certStudentName').innerText = studentName;
+            document.getElementById('certTitleGender').innerText = isGirl ? 'الطالبة المتميزة:' : 'الطالب المتميز:';
+            document.getElementById('certVerbGender').innerText = isGirl ? 'قد أتقنت' : 'قد أتقن';
+            
+            document.getElementById('certTeacherTop').innerText = teacherName;
+            document.getElementById('certTeacherMain').innerText = teacherName;
+            document.getElementById('certTeacherSign').innerText = `${teacherName} 🌸`;
+
+            document.getElementById('certTableName').innerText = `جدول ${toArabicDigits(tableValue)}`;
+            
+            const today = new Date();
+            document.getElementById('certDate').innerText = today.toLocaleDateString('ar-SA');
+
+            closeWinModal();
+            document.getElementById('certModal').classList.remove('hidden');
+        }
+
+        function closeCertModal() {
+            document.getElementById('certModal').classList.add('hidden');
+        }
+
+        function changeTable() {
+            score = 0;
+            document.getElementById('scoreText').innerText = '٠';
+            initLevel();
+        }
+
+        function resetGame() {
+            score = 0;
+            document.getElementById('scoreText').innerText = '٠';
+            initLevel();
+        }
+
+        window.onload = function() {
+            initLevel();
+        };
+    </script>
+</body>
+</html>
